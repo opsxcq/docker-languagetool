@@ -1,0 +1,76 @@
+* LanguageTool Docker Image
+
+LanguageTool is an Open Source proofreading software for English, French,
+German, Polish, Russian, and more than 20 other languages. It finds many errors
+that a simple spell checker cannot detect.
+
+[[./tool.gif]]
+
+* Usage
+* Build
+This is a simple docker image, the build can be archived my running the
+following command:
+
+#+begin_src shell :results output verbatim :exports both
+docker build -t strm/languagetool .
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Sending build context to Docker daemon  1.281MB
+Step 1/7 : FROM openjdk:17-alpine
+ ---> 6f9b6ac51f12
+Step 2/7 : LABEL maintainer <opsxcq@strm.sh>
+ ---> Using cache
+ ---> a193faf3ae7a
+Step 3/7 : RUN apk add --no-cache libgomp gcompat libstdc++
+ ---> Using cache
+ ---> 7b8a45539bc2
+Step 4/7 : RUN wget https://www.languagetool.org/download/LanguageTool-5.3.zip &&     unzip *.zip &&     rm *.zip
+ ---> Using cache
+ ---> aceff04e4b71
+Step 5/7 : EXPOSE 9422
+ ---> Using cache
+ ---> 065ec439eb37
+Step 6/7 : WORKDIR /LanguageTool-5.3
+ ---> Using cache
+ ---> 37c59f47173b
+Step 7/7 : CMD ["java","-cp","languagetool-server.jar","org.languagetool.server.HTTPServer","--port","9422","--public","--allow-origin","'*'"]
+ ---> Using cache
+ ---> 29ce13bf0ff9
+Successfully built 29ce13bf0ff9
+Successfully tagged strm/languagetool:latest
+#+end_example
+
+* Emacs usage
+In case you are using Spacemacs and want to add proofreading to your emails and
+documents, inside =dotspacemacs-configuration-layers= add the following code:
+
+#+begin_src emacs-lisp
+(languagetool :variables
+              langtool-http-server-host "localhost"
+              langtool-http-server-port 9422)
+#+end_src
+
+Change the =langtool-http-server-host= accordingly to where you are running the
+tool. This should be enough to enable the =langtool-check-buffer= command on Org
+Mode, Latex Mode, on Emails and everywhere else.
+
+* Using on Firefox
+There is a plugin available [[https://addons.mozilla.org/en-US/firefox/addon/languagetool/?utm_source=external-lt-homepage][here]] which can be used to integrate this tool with
+Firefox, but with the default configuration it uses the cloud servers and not
+the local instance. Please change this configuration for better privacy.
+
+* Start the server locally
+
+#+begin_src bash :results output verbatim :exports both
+docker stop languagetool && docker rm languagetool
+docker run -d --restart unless-stopped --name languagetool -p 9422:9422 strm/languagetool
+#+end_src
+
+#+RESULTS:
+: c73788b324bd6f871d4c5586e8b8745670a53456166faaa3ed817c0923d2131c
+
+* References
+- [[https://github.com/languagetool-org/languagetool][Official repository]]
+- [[https://addons.mozilla.org/en-US/firefox/addon/languagetool/?utm_source=external-lt-homepage][Firefox plugin]]
